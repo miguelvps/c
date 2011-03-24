@@ -24,6 +24,9 @@
 #include <unistd.h>
 
 
+#define THRESHOLD 50
+
+
 int min(int x, int y) {
     return x > y ? y : x;
 }
@@ -117,14 +120,14 @@ int main(int argc, const char *argv[]) {
         return 0;
     }
 
-    dir = aprox_dir_match(path, token, 50);
+    dir = aprox_dir_match(path, token, THRESHOLD);
     while (dir) {
         strcat(path, dir->d_name);
         strcat(path, "/");
         token = strtok(NULL, "/");
         if (!token)
             break;
-        dir = aprox_dir_match(path, token, 50);
+        dir = aprox_dir_match(path, token, THRESHOLD);
     }
 
     if (dir)
