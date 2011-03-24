@@ -128,7 +128,7 @@ int main(int argc, const char *argv[]) {
     }
 
     if (dir)
-        printf("%s\n", path);
+        printf("%s\n", realpath(path,NULL));
     else
         printf("%s\n", argv[1]);
 
