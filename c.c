@@ -68,7 +68,9 @@ int normalized_levenshtein_distance(const char *s, const char *t) {
 }
 
 
-struct dirent *aprox_dir_match(const char *path, const char *query, int threshold) {
+struct dirent *aprox_dir_match(const char *path, const char *query,
+                               int (*matcher)(const char *, const char *),
+                               int threshold) {
     int i;
     DIR *dp;
     struct dirent *entry, *res = NULL;
@@ -77,7 +79,7 @@ struct dirent *aprox_dir_match(const char *path, const char *query, int threshol
     while ((entry = readdir(dp))) {
         if (entry->d_type != DT_DIR)
             continue;
-        i = normalized_levenshtein_distance(entry->d_name, query);
+        i = matcher(entry->d_name, query);
         if (i >= threshold) {
             res = entry;
             threshold = i;
@@ -120,14 +122,16 @@ int main(int argc, const char *argv[]) {
         return 0;
     }
 
-    dir = aprox_dir_match(path, token, THRESHOLD);
+    dir = aprox_dir_match(path, token, normalized_levenshtein_distance,
+                          THRESHOLD);
     while (dir) {
         strcat(path, dir->d_name);
         strcat(path, "/");
         token = strtok(NULL, "/");
         if (!token)
             break;
-        dir = aprox_dir_match(path, token, THRESHOLD);
+        dir = aprox_dir_match(path, token, normalized_levenshtein_distance,
+                              THRESHOLD);
     }
 
     if (dir)
