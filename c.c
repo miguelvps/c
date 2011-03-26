@@ -24,7 +24,7 @@
 #include <unistd.h>
 
 
-#define THRESHOLD 50
+#define THRESHOLD 0.5
 
 
 int min(int x, int y) {
@@ -60,18 +60,18 @@ int levenshtein_distance(const char *s, const char *t) {
 }
 
 
-int normalized_levenshtein_distance(const char *s, const char *t) {
+double normalized_levenshtein_distance(const char *s, const char *t) {
     int sl = strlen(s);
     int tl = strlen(t);
-    int d = levenshtein_distance(s,t);
-    return 100 - (d * 100 / (sl > tl ? sl : tl));
+    double d = levenshtein_distance(s,t);
+    return 1 - (d / (sl > tl ? sl : tl));
 }
 
 
 struct dirent *aprox_dir_match(const char *path, const char *query,
-                               int (*matcher)(const char *, const char *),
-                               int threshold) {
-    int i;
+                               double (*matcher)(const char *, const char *),
+                               double threshold) {
+    double d;
     DIR *dp;
     struct dirent *entry, *res = NULL;
 
@@ -79,11 +79,11 @@ struct dirent *aprox_dir_match(const char *path, const char *query,
     while ((entry = readdir(dp))) {
         if (entry->d_type != DT_DIR)
             continue;
-        i = matcher(entry->d_name, query);
-        if (i >= threshold) {
+        d = matcher(entry->d_name, query);
+        if (d >= threshold) {
             res = entry;
-            threshold = i;
-            if (i == 100)
+            threshold = d;
+            if (d == 1.0)
                 break;
         }
     }
