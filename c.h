@@ -18,7 +18,8 @@
 
 #define THRESHOLD 0.5
 
-#define MATCHER normalized_levenshtein_distance
+#define MATCHER jaro_winkler_distance
 
 
 double normalized_levenshtein_distance(const char *s, const char *t);
+double jaro_winkler_distance(const char *s, const char *a);
