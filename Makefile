@@ -1,7 +1,10 @@
-CC=gcc
+CC?=gcc
 CFLAGS=-Wall -Wextra -g
 
-c: c.o
+SRCFILES=$(wildcard *.c)
+OBJFILES=$(SRCFILES:.c=.o)
+
+c: $(OBJFILES)
 
 clean:
-	rm -f c c.o
+	rm -f c $(OBJFILES)

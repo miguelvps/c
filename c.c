@@ -23,49 +23,7 @@
 #include <dirent.h>
 #include <unistd.h>
 
-
-#define THRESHOLD 0.5
-
-
-int min(int x, int y) {
-    return x > y ? y : x;
-}
-
-
-int levenshtein_distance(const char *s, const char *t) {
-    int i, j;
-    int sl = strlen(s);
-    int tl = strlen(t);
-    int d[sl+1][tl+1];
-
-    for (i=0; i<=sl; i++)
-        d[i][0] = i;
-
-    for (j=0; j<=tl; j++)
-        d[0][j] = j;
-
-    for (j=1; j<=tl; j++) {
-        for (i=1; i<=sl; i++) {
-            if (s[i-1] == t[j-1]) {
-                d[i][j] = d[i-1][j-1];
-            }
-            else {
-                d[i][j] = min(d[i-1][j]+1, // deletion
-                              min(d[i][j-1]+1, // insertion
-                                  d[i-1][j-1]+1)); // substitution
-            }
-        }
-    }
-    return d[sl][tl];
-}
-
-
-double normalized_levenshtein_distance(const char *s, const char *t) {
-    int sl = strlen(s);
-    int tl = strlen(t);
-    double d = levenshtein_distance(s,t);
-    return 1 - (d / (sl > tl ? sl : tl));
-}
+#include "c.h"
 
 
 struct dirent *aprox_dir_match(const char *path, const char *query,
@@ -122,16 +80,14 @@ int main(int argc, const char *argv[]) {
         return 0;
     }
 
-    dir = aprox_dir_match(path, token, normalized_levenshtein_distance,
-                          THRESHOLD);
+    dir = aprox_dir_match(path, token, MATCHER, THRESHOLD);
     while (dir) {
         strcat(path, dir->d_name);
         strcat(path, "/");
         token = strtok(NULL, "/");
         if (!token)
             break;
-        dir = aprox_dir_match(path, token, normalized_levenshtein_distance,
-                              THRESHOLD);
+        dir = aprox_dir_match(path, token, MATCHER, THRESHOLD);
     }
 
     if (dir)
