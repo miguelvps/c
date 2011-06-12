@@ -2,7 +2,7 @@
 
 function c() {
     local bin=`which c`
-    local dir=`$bin $@`
+    local dir=`$bin "$@"`
     cd "$dir"
 }
 complete -A directory c
