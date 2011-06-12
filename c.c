@@ -153,6 +153,7 @@ int main(int argc, const char *argv[]) {
         qsort(array.items, array.size, sizeof(*array.items), compare);
         path = realpath(array.items[0]->dir, NULL);
         printf("%s\n", path);
+        fprintf(stderr, "%s\n", path);
         free(path);
     } else
         printf("%s\n", argv[1]);
