@@ -111,30 +111,42 @@ void aprox_path_match(const char *path, struct darray_string *tokens,
     closedir(dp);
 }
 
-int main(int argc, const char *argv[]) {
+int main(int argc, char * const argv[]) {
     int i;
+    int complete_flag;
     char *path, *token;
     struct darray_string tokens;
     struct darray_entry array;
     struct stat buf;
 
-    if (argc <= 1) {
+    while ((i=getopt(argc, argv, "c")) != -1) {
+        switch (i) {
+        case 'c':
+            complete_flag = 1;
+            break;
+        default:
+            fprintf(stderr, "Usage: %s [-c] [directory]\n", argv[0]);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (optind >= argc) {
         printf("%s", getenv("HOME"));
         return 0;
     }
 
-    if (strcmp(argv[1], "-") == 0) {
-        printf("%s", argv[1]);
+    if (strcmp(argv[optind], "-") == 0) {
+        printf("%s", argv[optind]);
         return 0;
     }
 
-    if (stat(argv[1], &buf) == 0 && S_ISDIR(buf.st_mode)) {
-        printf("%s", argv[1]);
+    if (stat(argv[optind], &buf) == 0 && S_ISDIR(buf.st_mode)) {
+        printf("%s", argv[optind]);
         return 0;
     }
 
-    path = malloc((strlen(argv[1]) + 1) * sizeof(*path));
-    path = strcpy(path, argv[1]);
+    path = malloc((strlen(argv[optind]) + 1) * sizeof(*path));
+    path = strcpy(path, argv[optind]);
 
     darray_init(&tokens, 10);
     token = strtok(path, "/");
@@ -144,6 +156,7 @@ int main(int argc, const char *argv[]) {
     }
 
     darray_init(&array, 10);
+
     aprox_path_match((argv[1][0] == '/') ? "/" : "./", &tokens, 0, 0, &array);
 
     darray_free(&tokens);
@@ -156,7 +169,7 @@ int main(int argc, const char *argv[]) {
         fprintf(stderr, "%s\n", path);
         free(path);
     } else
-        printf("%s", argv[1]);
+        printf("%s", argv[optind]);
 
     darray_destroy(&array, entry_free, i);
 
