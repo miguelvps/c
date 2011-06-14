@@ -86,8 +86,7 @@ void aprox_path_match(const char *path, int level, double score,
 
     dp = opendir(path);
     while ((dir = readdir(dp))) {
-        if (dir->d_type != DT_DIR || strcmp(dir->d_name, ".") == 0
-                || strcmp(dir->d_name, "..") == 0)
+        if (dir->d_type != DT_DIR)
             continue;
 
         s = MATCHER(dir->d_name, tokens->items[level]);
