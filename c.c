@@ -118,17 +118,17 @@ int main(int argc, const char *argv[]) {
     struct stat buf;
 
     if (argc <= 1) {
-        printf("%s\n", getenv("HOME"));
+        printf("%s", getenv("HOME"));
         return 0;
     }
 
     if (strcmp(argv[1], "-") == 0) {
-        printf(argv[1]);
+        printf("%s", argv[1]);
         return 0;
     }
 
     if (stat(argv[1], &buf) == 0 && S_ISDIR(buf.st_mode)) {
-        printf(argv[1]);
+        printf("%s", argv[1]);
         return 0;
     }
 
@@ -151,11 +151,11 @@ int main(int argc, const char *argv[]) {
     if (array.size) {
         qsort(array.items, array.size, sizeof(*array.items), compare);
         path = realpath(array.items[0]->dir, NULL);
-        printf("%s\n", path);
+        printf("%s", path);
         fprintf(stderr, "%s\n", path);
         free(path);
     } else
-        printf("%s\n", argv[1]);
+        printf("%s", argv[1]);
 
     darray_destroy(&array, entry_free, i);
 
