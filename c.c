@@ -16,6 +16,7 @@
  */
 
 
+#include <ctype.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -83,27 +84,31 @@ int entry_compare(const void *a, const void *b) {
     return (int)(100.0 * (*e2)->score - 100.0 * (*e1)->score);
 }
 
-void aprox_path_match(const char *path, struct darray_string *tokens,
-                      int level, double score,
-                      struct darray_entry *result) {
+/* from path find match directories for tokens and return it in result */
+void aprox_path_match_rec(const char *path, struct darray_string *tokens,
+                          int level, double score,
+                          struct darray_entry *result) {
     double s;
     char *p;
     DIR *dp;
     struct dirent *dir;
 
-    dp = opendir(path);
+    dp = opendir(path[0] == '\0' ? "." : path);
     while ((dir = readdir(dp))) {
         if (dir->d_type != DT_DIR)
             continue;
 
         s = MATCHER(dir->d_name, tokens->items[level]);
         if (s > THRESHOLD) {
-            p = malloc(strlen(path) + strlen(dir->d_name) + 2);
-            sprintf(p, "%s%s/", path, dir->d_name);
-            if (level + 1 >= tokens->size)
+            if (level + 1 >= tokens->size) {
+                p = malloc(strlen(path) + strlen(dir->d_name) + 1);
+                sprintf(p, "%s%s", path, dir->d_name);
                 darray_append(result, entry_new(p, (score + s) / (level + 1)));
+            }
             else {
-                aprox_path_match(p, tokens, level + 1, score + s, result);
+                p = malloc(strlen(path) + strlen(dir->d_name) + 2);
+                sprintf(p, "%s%s/", path, dir->d_name);
+                aprox_path_match_rec(p, tokens, level + 1, score + s, result);
                 free(p);
             }
         }
@@ -111,14 +116,112 @@ void aprox_path_match(const char *path, struct darray_string *tokens,
     closedir(dp);
 }
 
+struct darray_entry *aprox_path_match(const char *path) {
+    char *p, *token;
+    struct darray_string tokens;
+    struct darray_entry *entries;
+
+
+    p = malloc((strlen(path) + 1) * sizeof(*p));
+    p = strcpy(p, path);
+
+    darray_init(&tokens, 10);
+    token = strtok(p, "/");
+    while (token != NULL) {
+        darray_append(&tokens, token);
+        token = strtok(NULL, "/");
+    }
+
+    entries = malloc(sizeof(*entries));
+    darray_init(entries, 10);
+    aprox_path_match_rec((path[0] == '/') ? "/" : "", &tokens, 0, 0, entries);
+
+    darray_free(&tokens);
+    free(p);
+
+    return entries;
+}
+
+int print_dir_complete(const char *path, const char *starts_with, int full) {
+    int i;
+    char *p;
+    DIR *dp;
+    struct dirent *dir;
+
+    i = 0;
+    dp = opendir(path[0] == '\0' ? "." : path);
+    while ((dir = readdir(dp))) {
+        if (dir->d_type != DT_DIR || (starts_with[0] != '.'
+                                      && (strcmp(dir->d_name, ".") == 0
+                                          || strcmp(dir->d_name, "..") == 0)))
+            continue;
+        if ((p=strstr(dir->d_name, starts_with)) != NULL && p == dir->d_name) {
+            if (full)
+                printf("%s%s%s\n", path, path[0] == '/' ? "" : "/", dir->d_name);
+            else
+                printf("%s\n", dir->d_name);
+            i++;
+        }
+    }
+    closedir(dp);
+    return i;
+}
+
+void complete(const char *path) {
+    int i, path_len;
+    char *p, *c, *dname;
+    struct stat buf;
+    struct darray_entry *entries;
+
+    path_len = strlen(path);
+
+    /* Normal completion */
+    if (path_len == 0) {
+        print_dir_complete("", "", 0);
+        return;
+    }
+    p = c = malloc((path_len + 1) * sizeof(*p));
+    p = strcpy(p, path);
+    dname = strrchr(p, '/');
+    if (dname == p) {
+        p = "/";
+        dname++;
+    }
+    else if (dname != NULL) {
+        (*dname) = '\0';
+        dname++;
+    }
+    else {
+        if (print_dir_complete("", p, 0))
+            return;
+    }
+    if (stat(p, &buf) == 0 && S_ISDIR(buf.st_mode)) {
+        if (print_dir_complete(p, dname, 1))
+            return;
+    }
+    free(c);
+
+    /* Aprox completion */
+    entries = aprox_path_match(path);
+    qsort(entries->items, entries->size, sizeof(*entries->items), entry_compare);
+    if (path[path_len - 1] == '/')
+        for (i = 0; i < entries->size; i++)
+            print_dir_complete(entries->items[i]->dir, "", 1);
+    else
+        for (i = 0; i < entries->size; i++)
+            printf("%s\n", entries->items[i]->dir);
+    darray_destroy(entries, entry_free, i);
+    free(entries);
+}
+
 int main(int argc, char * const argv[]) {
     int i;
+    char *path;
     int complete_flag;
-    char *path, *token;
-    struct darray_string tokens;
-    struct darray_entry array;
+    struct darray_entry *array;
     struct stat buf;
 
+    complete_flag = 0;
     while ((i=getopt(argc, argv, "c")) != -1) {
         switch (i) {
         case 'c':
@@ -128,6 +231,14 @@ int main(int argc, char * const argv[]) {
             fprintf(stderr, "Usage: %s [-c] [directory]\n", argv[0]);
             exit(EXIT_FAILURE);
         }
+    }
+
+    if (complete_flag) {
+        /* argv[optind] = program name */
+        /* argv[optind + 1] = str to be completed */
+        /* prints each match followed by \n */
+        complete(argv[optind + 1]);
+        return 0;
     }
 
     if (optind >= argc) {
@@ -145,33 +256,18 @@ int main(int argc, char * const argv[]) {
         return 0;
     }
 
-    path = malloc((strlen(argv[optind]) + 1) * sizeof(*path));
-    path = strcpy(path, argv[optind]);
-
-    darray_init(&tokens, 10);
-    token = strtok(path, "/");
-    while (token != NULL) {
-        darray_append(&tokens, token);
-        token = strtok(NULL, "/");
-    }
-
-    darray_init(&array, 10);
-
-    aprox_path_match((argv[1][0] == '/') ? "/" : "./", &tokens, 0, 0, &array);
-
-    darray_free(&tokens);
-    free(path);
-
-    if (array.size) {
-        qsort(array.items, array.size, sizeof(*array.items), entry_compare);
-        path = realpath(array.items[0]->dir, NULL);
+    array = aprox_path_match(argv[optind]);
+    if (array->size) {
+        qsort(array->items, array->size, sizeof(*array->items), entry_compare);
+        path = realpath(array->items[0]->dir, NULL);
         printf("%s", path);
-        fprintf(stderr, "%s\n", path);
+        fprintf(stderr, "%.0f%% %s\n", array->items[0]->score * 100, path);
         free(path);
     } else
         printf("%s", argv[optind]);
 
-    darray_destroy(&array, entry_free, i);
+    darray_destroy(array, entry_free, i);
+    free(array);
 
     return 0;
 }

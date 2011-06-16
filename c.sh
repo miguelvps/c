@@ -5,4 +5,4 @@ function c() {
     local dir=`$bin "$@"`
     cd "$dir"
 }
-complete -A directory c
+complete -o filenames -C "`which c` -c" c
