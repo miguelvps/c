@@ -83,8 +83,9 @@ int entry_compare(const void *a, const void *b) {
     return (int)(100.0 * (*e2)->score - 100.0 * (*e1)->score);
 }
 
-void aprox_path_match(const char *path, int level, double score,
-                     struct darray_string *tokens, struct darray_entry *result) {
+void aprox_path_match(const char *path, struct darray_string *tokens,
+                      int level, double score,
+                      struct darray_entry *result) {
     double s;
     char *p;
     DIR *dp;
@@ -102,7 +103,7 @@ void aprox_path_match(const char *path, int level, double score,
             if (level + 1 >= tokens->size)
                 darray_append(result, entry_new(p, (score + s) / (level + 1)));
             else {
-                aprox_path_match(p, level + 1, score + s, tokens, result);
+                aprox_path_match(p, tokens, level + 1, score + s, result);
                 free(p);
             }
         }
@@ -143,7 +144,7 @@ int main(int argc, const char *argv[]) {
     }
 
     darray_init(&array, 10);
-    aprox_path_match((argv[1][0] == '/') ? "/" : "./", 0, 0, &tokens, &array);
+    aprox_path_match((argv[1][0] == '/') ? "/" : "./", &tokens, 0, 0, &array);
 
     darray_free(&tokens);
     free(path);
