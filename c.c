@@ -77,6 +77,12 @@ void entry_free(struct entry *entry) {
     free(entry);
 }
 
+int entry_compare(const void *a, const void *b) {
+    struct entry **e1 = (struct entry **)a;
+    struct entry **e2 = (struct entry **)b;
+    return (int)(100.0 * (*e2)->score - 100.0 * (*e1)->score);
+}
+
 void aprox_path_match(const char *path, int level, double score,
                      struct darray_string *tokens, struct darray_entry *result) {
     double s;
@@ -102,12 +108,6 @@ void aprox_path_match(const char *path, int level, double score,
         }
     }
     closedir(dp);
-}
-
-int compare(const void *a, const void *b) {
-    struct entry **e1 = (struct entry **)a;
-    struct entry **e2 = (struct entry **)b;
-    return (int)(100.0 * (*e2)->score - 100.0 * (*e1)->score);
 }
 
 int main(int argc, const char *argv[]) {
@@ -149,7 +149,7 @@ int main(int argc, const char *argv[]) {
     free(path);
 
     if (array.size) {
-        qsort(array.items, array.size, sizeof(*array.items), compare);
+        qsort(array.items, array.size, sizeof(*array.items), entry_compare);
         path = realpath(array.items[0]->dir, NULL);
         printf("%s", path);
         fprintf(stderr, "%s\n", path);
