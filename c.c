@@ -61,6 +61,12 @@
 darray(darray_entry, struct entry *);
 darray(darray_string, char *);
 
+struct options {
+    double (*matcher)(const char *, const char *);
+    double threshold;
+    int complete;
+} options;
+
 struct entry {
     char *dir;
     double score;
@@ -98,8 +104,8 @@ void aprox_path_match_rec(const char *path, struct darray_string *tokens,
         if (dir->d_type != DT_DIR)
             continue;
 
-        s = MATCHER(dir->d_name, tokens->items[level]);
-        if (s > THRESHOLD) {
+        s = options.matcher(dir->d_name, tokens->items[level]);
+        if (s > options.threshold) {
             if (level + 1 >= tokens->size) {
                 p = malloc(strlen(path) + strlen(dir->d_name) + 1);
                 sprintf(p, "%s%s", path, dir->d_name);
@@ -217,23 +223,38 @@ void complete(const char *path) {
 int main(int argc, char * const argv[]) {
     int i;
     char *path;
-    int complete_flag;
     struct darray_entry *array;
     struct stat buf;
 
-    complete_flag = 0;
-    while ((i=getopt(argc, argv, "c")) != -1) {
+    memset(&options, 0, sizeof(options));
+    options.matcher = MATCHER;
+    options.threshold = THRESHOLD;
+
+    while ((i=getopt(argc, argv, "m:t:c")) != -1) {
         switch (i) {
+        case 'm':
+            switch (atoi(optarg)) {
+                case 1:
+                    options.matcher = jaro_winkler_distance;
+                    break;
+                case 2:
+                    options.matcher = normalized_levenshtein_distance;
+                    break;
+            }
+            break;
+        case 't':
+            options.threshold = atof(optarg);
+            break;
         case 'c':
-            complete_flag = 1;
+            options.complete = 1;
             break;
         default:
-            fprintf(stderr, "Usage: %s [-c] [directory]\n", argv[0]);
+            fprintf(stderr, "Usage: %s [-m matcher] [-t threshold] [-c] [directory]\n", argv[0]);
             exit(EXIT_FAILURE);
         }
     }
 
-    if (complete_flag) {
+    if (options.complete) {
         /* argv[optind] = program name */
         /* argv[optind + 1] = str to be completed */
         /* prints each match followed by \n */
