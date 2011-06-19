@@ -5,4 +5,7 @@ function c() {
     local dir=`$bin "$@"`
     cd "$dir"
 }
-complete -o filenames -C "`which c` -c" c
+# if readline completion-ignore-case is set to `on'
+complete -o filenames -C "`which c` -ci" c
+# else
+# complete -o filenames -C "`which c` -c" c

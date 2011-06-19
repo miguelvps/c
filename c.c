@@ -65,6 +65,7 @@ struct options {
     double (*matcher)(const char *, const char *);
     double threshold;
     int complete;
+    int icase;
 } options;
 
 struct entry {
@@ -148,20 +149,35 @@ struct darray_entry *aprox_path_match(const char *path) {
     return entries;
 }
 
-int print_dir_complete(const char *path, const char *starts_with, int full) {
+int str_starts_with(const char *str, const char *prefix, int icase) {
+    int i = 0;
+    while (prefix[i] != '\0') {
+        if (icase) {
+            if (tolower(str[i]) != tolower(prefix[i]))
+                return 0;
+        }
+        else {
+            if (str[i] != prefix[i])
+                return 0;
+        }
+        i++;
+    }
+    return 1;
+}
+
+int print_dir_complete(const char *path, const char *prefix, int full) {
     int i;
-    char *p;
     DIR *dp;
     struct dirent *dir;
 
     i = 0;
     dp = opendir(path[0] == '\0' ? "." : path);
     while ((dir = readdir(dp))) {
-        if (dir->d_type != DT_DIR || (starts_with[0] != '.'
+        if (dir->d_type != DT_DIR || (prefix[0] != '.'
                                       && (strcmp(dir->d_name, ".") == 0
                                           || strcmp(dir->d_name, "..") == 0)))
             continue;
-        if ((p=strstr(dir->d_name, starts_with)) != NULL && p == dir->d_name) {
+        if (str_starts_with(dir->d_name, prefix, options.icase)) {
             if (full)
                 printf("%s%s%s\n", path, path[0] == '/' ? "" : "/", dir->d_name);
             else
@@ -230,7 +246,7 @@ int main(int argc, char * const argv[]) {
     options.matcher = MATCHER;
     options.threshold = THRESHOLD;
 
-    while ((i=getopt(argc, argv, "m:t:c")) != -1) {
+    while ((i=getopt(argc, argv, "m:t:ci")) != -1) {
         switch (i) {
         case 'm':
             switch (atoi(optarg)) {
@@ -248,8 +264,11 @@ int main(int argc, char * const argv[]) {
         case 'c':
             options.complete = 1;
             break;
+        case 'i':
+            options.icase = 1;
+            break;
         default:
-            fprintf(stderr, "Usage: %s [-m matcher] [-t threshold] [-c] [directory]\n", argv[0]);
+            fprintf(stderr, "Usage: %s [-m matcher] [-t threshold] [-c] [-i] [directory]\n", argv[0]);
             exit(EXIT_FAILURE);
         }
     }
