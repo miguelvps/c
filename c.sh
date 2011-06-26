@@ -1,11 +1,9 @@
 #!/bin/bash
 
 function c() {
-    local bin=`which c`
-    local dir=`$bin "$@"`
-    cd "$dir"
+    cd "`command c $@`"
 }
 # if readline completion-ignore-case is set to `on'
-complete -o filenames -C "`which c` -ci" c
+complete -o filenames -C "command c -ci" c
 # else
-# complete -o filenames -C "`which c` -c" c
+# complete -o filenames -C "command c -c" c
