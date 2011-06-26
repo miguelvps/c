@@ -91,6 +91,10 @@ int entry_compare(const void *a, const void *b) {
     return (int)(100.0 * (*e2)->score - 100.0 * (*e1)->score);
 }
 
+int max(int x, int y) {
+    return x > y ? x : y;
+}
+
 /* from path find match directories for tokens and return it in result */
 void aprox_path_match_rec(const char *path, struct darray_string *tokens,
                           int level, double score,
@@ -179,7 +183,9 @@ int print_dir_complete(const char *path, const char *prefix, int full) {
             continue;
         if (str_starts_with(dir->d_name, prefix, options.icase)) {
             if (full)
-                printf("%s%s%s\n", path, path[0] == '/' ? "" : "/", dir->d_name);
+                printf("%s%s%s\n", path,
+                                   path[max(0, strlen(path) - 1)] == '/' ? "" : "/",
+                                   dir->d_name);
             else
                 printf("%s\n", dir->d_name);
             i++;
