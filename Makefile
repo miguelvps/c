@@ -1,10 +1,29 @@
-CC?=gcc
-CFLAGS=-Wall -Wextra -g
+CC = gcc
+DESTDIR =
+PREFIX = /usr/local
+CFLAGS = -std=c99 -Wall -Wextra -pedantic -g
+LDFLAGS = -g
 
-SRCFILES=$(wildcard *.c)
-OBJFILES=$(SRCFILES:.c=.o)
+SRC = c.c levenshtein.c jarowinkler.c
+OBJ = $(SRC:.c=.o)
 
-c: $(OBJFILES)
+all: c
+
+c: $(OBJ)
+	${CC} ${LDFLAGS} -o $@ ${OBJ}
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
 
 clean:
-	rm -f c $(OBJFILES)
+	rm -f c $(OBJ)
+
+install: all
+	install -D -m 755 c $(DESTDIR)$(PREFIX)/bin/c
+	install -D -m 755 c.sh $(DESTDIR)/etc/bash_completion.d/c
+
+uninstall:
+	rm -f ${DESTDIR}${PREFIX}/bin/c
+	rm -f $(DESTDIR)/etc/bash_completion.d/c
+
+.PHONY: all clean install uninstall

@@ -16,6 +16,9 @@
  */
 
 
+#define _BSD_SOURCE
+#define _XOPEN_SOURCE
+
 #include <ctype.h>
 #include <dirent.h>
 #include <unistd.h>
