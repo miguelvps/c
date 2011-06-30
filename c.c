@@ -214,21 +214,19 @@ void complete(const char *path) {
     p = c = malloc((path_len + 1) * sizeof(*p));
     p = strcpy(p, path);
     dname = strrchr(p, '/');
-    if (dname == p) {
-        p = "/";
-        dname++;
-    }
-    else if (dname != NULL) {
-        (*dname) = '\0';
-        dname++;
-    }
-    else {
+    if (dname == NULL) {
         if (print_dir_complete("", p, 0))
             return;
     }
-    if (stat(p, &buf) == 0 && S_ISDIR(buf.st_mode)) {
-        if (print_dir_complete(p, dname, 1))
-            return;
+    else {
+        if (dname == p)
+            p = "/";
+        dname[0] = '\0';
+        dname++;
+        if (stat(p, &buf) == 0 && S_ISDIR(buf.st_mode)) {
+            if (print_dir_complete(p, dname, 1))
+                return;
+        }
     }
     free(c);
 
