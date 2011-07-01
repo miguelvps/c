@@ -27,8 +27,15 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <dlfcn.h>
 
-#include "c.h"
+
+#include "jarowinkler.h"
+
+
+#define THRESHOLD 0.5
+
+#define MATCHER jaro_winkler_distance
 
 #define darray(name, type) struct name { type *items; int size; int alloc; }
 
@@ -64,8 +71,12 @@
 darray(darray_entry, struct entry *);
 darray(darray_string, char *);
 
+typedef double (*matcher_t)(const char *, const char *);
+
 struct options {
-    double (*matcher)(const char *, const char *);
+    char *library;
+    char *matcher_name;
+    matcher_t matcher;
     double threshold;
     int complete;
     int icase;
@@ -246,6 +257,7 @@ void complete(const char *path) {
 int main(int argc, char * const argv[]) {
     int i;
     char *path;
+    void *handle;
     struct darray_entry *array;
     struct stat buf;
 
@@ -253,17 +265,13 @@ int main(int argc, char * const argv[]) {
     options.matcher = MATCHER;
     options.threshold = THRESHOLD;
 
-    while ((i=getopt(argc, argv, "m:t:ci")) != -1) {
+    while ((i=getopt(argc, argv, "l:m:t:ci")) != -1) {
         switch (i) {
+        case 'l':
+            options.library = optarg;
+            break;
         case 'm':
-            switch (atoi(optarg)) {
-                case 1:
-                    options.matcher = jaro_winkler_distance;
-                    break;
-                case 2:
-                    options.matcher = normalized_levenshtein_distance;
-                    break;
-            }
+            options.matcher_name = optarg;
             break;
         case 't':
             options.threshold = atof(optarg);
@@ -275,7 +283,20 @@ int main(int argc, char * const argv[]) {
             options.icase = 1;
             break;
         default:
-            fprintf(stderr, "Usage: %s [-m matcher] [-t threshold] [-c] [-i] [directory]\n", argv[0]);
+            fprintf(stderr, "Usage: %s [-l library] [-m matcher] [-t threshold] [-ci] [directory]\n", argv[0]);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (options.library && options.matcher_name) {
+        handle = dlopen(options.library, RTLD_LAZY);
+        if (!handle) {
+            fprintf(stderr, "dlopen: %s\n", dlerror());
+            exit(EXIT_FAILURE);
+        }
+        *(void **)(&options.matcher) = dlsym(handle, options.matcher_name);
+        if (options.matcher == NULL) {
+            fprintf(stderr, "dlsym: %s\n", dlerror());
             exit(EXIT_FAILURE);
         }
     }

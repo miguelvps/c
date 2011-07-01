@@ -1,4 +1,4 @@
-/* c: c.h
+/* c: levenshtein.h
  * Copyright (C) 2011 Miguel Serrano
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,10 +16,5 @@
  */
 
 
-#define THRESHOLD 0.5
-
-#define MATCHER jaro_winkler_distance
-
-
+int levenshtein_distance(const char *s, const char *t);
 double normalized_levenshtein_distance(const char *s, const char *t);
-double jaro_winkler_distance(const char *s, const char *a);

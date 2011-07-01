@@ -1,16 +1,12 @@
-CC = gcc
-DESTDIR =
-PREFIX = /usr/local
-CFLAGS = -std=c99 -Wall -Wextra -pedantic -g
-LDFLAGS = -g
+include config.mk
 
-SRC = c.c levenshtein.c jarowinkler.c
+SRC = c.c jarowinkler.c
 OBJ = $(SRC:.c=.o)
 
 all: c
 
 c: $(OBJ)
-	${CC} ${LDFLAGS} -o $@ ${OBJ}
+	$(CC) $(LDFLAGS) $(LIBS) -o $@ $(OBJ)
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
@@ -23,7 +19,7 @@ install: all
 	install -D -m 755 c.sh $(DESTDIR)/etc/bash_completion.d/c
 
 uninstall:
-	rm -f ${DESTDIR}${PREFIX}/bin/c
+	rm -f $(DESTDIR)$(PREFIX)/bin/c
 	rm -f $(DESTDIR)/etc/bash_completion.d/c
 
 .PHONY: all clean install uninstall
