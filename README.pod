@@ -1,0 +1,76 @@
+=head1 NAME
+
+c - a 'cd' wrapper
+
+=head1 SYNOPSIS
+
+B<c> [B<-l> I<LIBRARY>] [B<-m> I<MATCHER>] [B<-t> I<THRESHOLD>] [B<-c>] [B<-i>] [I<directory>]
+
+=head1 DESCRIPTION
+
+B<c> is a 'cd' wrapper that fuzzy finds and cd into I<directory>.
+
+For instance, if you have I<foo/bar> and I<fo/foo> directories and run 'B<c> I<f/b>' you'll end up in I<foo/bar> I<directory>.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-l> I<LIBRARY>
+
+Select the shared library where I<MATCHER> is found.
+
+=item B<-m> I<MATCHER>
+
+Set the aproximate string matching function. See B<-l>.
+
+=item B<-t> I<THRESHOLD>
+
+Set the threshold ([0,1]).
+
+=item B<-c>
+
+Do bash completion.
+
+=item B<-i>
+
+Do insensitive case completion.
+
+=back
+
+=head1 ENVIRONMENT
+
+Defines a c() function that wraps shell 'cd'.
+
+If set, $_C_OPTS will be passed as arguments.
+
+=head1 EXAMPLE
+
+=over 4
+
+=item c foo
+
+cd to the directory with name most similar to foo.
+
+=item c -t 0.75 foo
+
+cd  to  the  directory  with  name  most  similar to foo using a threshold of 75%.
+
+=item c -l liblevenshtein.so -m normalized_levenshtein_distance foo
+
+cd to the directory with name most similar to foo using a levenshtein distance algorithm instead of the default.
+
+=back
+
+=head1 AUTHOR
+
+Miguel Serrano <miguelvps at gmail.com>
+
+=head1 HOMEPAGE
+
+http://github.com/miguelvps/c
+
+
+=head1 SEE ALSO
+
+cd, cdargs, autojump, z

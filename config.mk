@@ -1,3 +1,5 @@
+VERSION = $(shell git describe --tags --always --dirty)
+
 CC = gcc
 DESTDIR =
 PREFIX = /usr/local
