@@ -1,6 +1,6 @@
 include config.mk
 
-SRC = c.c jarowinkler.c
+SRC = c.c jarowinkler.c util.c
 OBJ = $(SRC:.c=.o)
 
 all: c c.1

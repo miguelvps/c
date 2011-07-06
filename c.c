@@ -15,11 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #define _BSD_SOURCE
 #define _XOPEN_SOURCE
 
-#include <ctype.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -29,22 +27,16 @@
 #include <sys/types.h>
 #include <dlfcn.h>
 
-
 #include "jarowinkler.h"
-
+#include "util.h"
 
 #define THRESHOLD 0.5
-
 #define MATCHER jaro_winkler_distance
 
 #define darray(name, type) struct name { type *items; int size; int alloc; }
 
 #define darray_init(a, n) do { \
-                              (a)->items = malloc(n * sizeof(*(a)->items)); \
-                                  if ((a)->items == NULL) { \
-                                      perror("error: darray malloc"); \
-                                      exit(EXIT_FAILURE); \
-                                  } \
+                              (a)->items = s_malloc(n * sizeof(*(a)->items)); \
                               (a)->size = 0; \
                               (a)->alloc = n; \
                           } while (0)
@@ -58,13 +50,8 @@
                                 } while (0)
 
 #define darray_append(a, i) do { \
-                                if ((a)->size >= (a)->alloc) { \
-                                    (a)->items = realloc((a)->items, ((a)->alloc*=2) * sizeof(*(a)->items)); \
-                                    if ((a)->items == NULL) { \
-                                        perror("error: darray realloc"); \
-                                        exit(EXIT_FAILURE); \
-                                    } \
-                                } \
+                                if ((a)->size >= (a)->alloc) \
+                                    (a)->items = s_realloc((a)->items, ((a)->alloc*=2) * sizeof(*(a)->items)); \
                                 (a)->items[(a)->size++] = i; \
                             } while (0)
 
@@ -88,7 +75,7 @@ struct entry {
 };
 
 struct entry *entry_new(char *dir, double score) {
-    struct entry *entry = malloc(sizeof(*entry));
+    struct entry *entry = s_malloc(sizeof(*entry));
     entry->dir = dir;
     entry->score = score;
     return entry;
@@ -103,10 +90,6 @@ int entry_compare(const void *a, const void *b) {
     struct entry **e1 = (struct entry **)a;
     struct entry **e2 = (struct entry **)b;
     return (int)(100.0 * (*e2)->score - 100.0 * (*e1)->score);
-}
-
-int max(int x, int y) {
-    return x > y ? x : y;
 }
 
 /* from path find match directories for tokens and return it in result */
@@ -126,12 +109,12 @@ void aprox_path_match_rec(const char *path, struct darray_string *tokens,
         s = options.matcher(dir->d_name, tokens->items[level]);
         if (s > options.threshold) {
             if (level + 1 >= tokens->size) {
-                p = malloc(strlen(path) + strlen(dir->d_name) + 1);
+                p = s_malloc(strlen(path) + strlen(dir->d_name) + 1);
                 sprintf(p, "%s%s", path, dir->d_name);
                 darray_append(result, entry_new(p, (score + s) / (level + 1)));
             }
             else {
-                p = malloc(strlen(path) + strlen(dir->d_name) + 2);
+                p = s_malloc(strlen(path) + strlen(dir->d_name) + 2);
                 sprintf(p, "%s%s/", path, dir->d_name);
                 aprox_path_match_rec(p, tokens, level + 1, score + s, result);
                 free(p);
@@ -147,7 +130,7 @@ struct darray_entry *aprox_path_match(const char *path) {
     struct darray_entry *entries;
 
 
-    p = malloc((strlen(path) + 1) * sizeof(*p));
+    p = s_malloc((strlen(path) + 1) * sizeof(*p));
     p = strcpy(p, path);
 
     darray_init(&tokens, 10);
@@ -157,7 +140,7 @@ struct darray_entry *aprox_path_match(const char *path) {
         token = strtok(NULL, "/");
     }
 
-    entries = malloc(sizeof(*entries));
+    entries = s_malloc(sizeof(*entries));
     darray_init(entries, 10);
     aprox_path_match_rec((path[0] == '/') ? "/" : "", &tokens, 0, 0, entries);
 
@@ -165,22 +148,6 @@ struct darray_entry *aprox_path_match(const char *path) {
     free(p);
 
     return entries;
-}
-
-int str_starts_with(const char *str, const char *prefix, int icase) {
-    int i = 0;
-    while (prefix[i] != '\0') {
-        if (icase) {
-            if (tolower(str[i]) != tolower(prefix[i]))
-                return 0;
-        }
-        else {
-            if (str[i] != prefix[i])
-                return 0;
-        }
-        i++;
-    }
-    return 1;
 }
 
 int print_dir_complete(const char *path, const char *prefix, int full) {
@@ -222,7 +189,7 @@ void complete(const char *path) {
         print_dir_complete("", "", 0);
         return;
     }
-    p = c = malloc((path_len + 1) * sizeof(*p));
+    p = c = s_malloc((path_len + 1) * sizeof(*p));
     p = strcpy(p, path);
     dname = strrchr(p, '/');
     if (dname == NULL) {
@@ -290,15 +257,11 @@ int main(int argc, char * const argv[]) {
 
     if (options.library && options.matcher_name) {
         handle = dlopen(options.library, RTLD_LAZY);
-        if (!handle) {
-            fprintf(stderr, "dlopen: %s\n", dlerror());
-            exit(EXIT_FAILURE);
-        }
+        if (!handle)
+            error(EXIT_FAILURE, 0, "dlopen: %s\n", dlerror());
         *(void **)(&options.matcher) = dlsym(handle, options.matcher_name);
-        if (options.matcher == NULL) {
-            fprintf(stderr, "dlsym: %s\n", dlerror());
-            exit(EXIT_FAILURE);
-        }
+        if (options.matcher == NULL)
+            error(EXIT_FAILURE, 0, "dlsym: %s\n", dlerror());
     }
 
     if (options.complete) {
