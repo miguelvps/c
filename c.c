@@ -16,22 +16,16 @@
  */
 
 #define _BSD_SOURCE
-#define _XOPEN_SOURCE
 
 #include <dirent.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <dlfcn.h>
 
-#include "jarowinkler.h"
+#include "options.h"
 #include "util.h"
-
-#define THRESHOLD 0.5
-#define MATCHER jaro_winkler_distance
 
 #define darray(name, type) struct name { type *items; int size; int alloc; }
 
@@ -57,17 +51,6 @@
 
 darray(darray_entry, struct entry *);
 darray(darray_string, char *);
-
-typedef double (*matcher_t)(const char *, const char *);
-
-struct options {
-    char *library;
-    char *matcher_name;
-    matcher_t matcher;
-    double threshold;
-    int complete;
-    int icase;
-} options;
 
 struct entry {
     char *dir;
@@ -224,70 +207,32 @@ void complete(const char *path) {
 int main(int argc, char * const argv[]) {
     int i;
     char *path;
-    void *handle;
     struct darray_entry *array;
     struct stat buf;
 
-    memset(&options, 0, sizeof(options));
-    options.matcher = MATCHER;
-    options.threshold = THRESHOLD;
-
-    while ((i=getopt(argc, argv, "l:m:t:ci")) != -1) {
-        switch (i) {
-        case 'l':
-            options.library = optarg;
-            break;
-        case 'm':
-            options.matcher_name = optarg;
-            break;
-        case 't':
-            options.threshold = atof(optarg);
-            break;
-        case 'c':
-            options.complete = 1;
-            break;
-        case 'i':
-            options.icase = 1;
-            break;
-        default:
-            fprintf(stderr, "Usage: %s [-l library] [-m matcher] [-t threshold] [-ci] [directory]\n", argv[0]);
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    if (options.library && options.matcher_name) {
-        handle = dlopen(options.library, RTLD_LAZY);
-        if (!handle)
-            error(EXIT_FAILURE, 0, "dlopen: %s\n", dlerror());
-        *(void **)(&options.matcher) = dlsym(handle, options.matcher_name);
-        if (options.matcher == NULL)
-            error(EXIT_FAILURE, 0, "dlsym: %s\n", dlerror());
-    }
+    parse_options(argc, argv);
 
     if (options.complete) {
-        /* argv[optind] = program name */
-        /* argv[optind + 1] = str to be completed */
-        /* prints each match followed by \n */
-        complete(argv[optind + 1]);
+        complete(options.directory);
         return 0;
     }
 
-    if (optind >= argc) {
+    if (!*options.directory) {
         printf("%s", getenv("HOME"));
         return 0;
     }
 
-    if (strcmp(argv[optind], "-") == 0) {
-        printf("%s", argv[optind]);
+    if (strcmp(options.directory, "-") == 0) {
+        printf("%s", options.directory);
         return 0;
     }
 
-    if (stat(argv[optind], &buf) == 0 && S_ISDIR(buf.st_mode)) {
-        printf("%s", argv[optind]);
+    if (stat(options.directory, &buf) == 0 && S_ISDIR(buf.st_mode)) {
+        printf("%s", options.directory);
         return 0;
     }
 
-    array = aprox_path_match(argv[optind]);
+    array = aprox_path_match(options.directory);
     if (array->size) {
         qsort(array->items, array->size, sizeof(*array->items), entry_compare);
         path = realpath(array->items[0]->dir, NULL);
@@ -295,7 +240,7 @@ int main(int argc, char * const argv[]) {
         fprintf(stderr, "%.0f%% %s\n", array->items[0]->score * 100, path);
         free(path);
     } else
-        printf("%s", argv[optind]);
+        printf("%s", options.directory);
 
     darray_destroy(array, entry_free, i);
     free(array);

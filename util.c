@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define program_name "c"
+#include "options.h"
 
 void error(int status, int errnum, const char *format, ...) {
     va_list args;

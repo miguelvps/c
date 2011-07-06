@@ -4,7 +4,7 @@ c - a 'cd' wrapper
 
 =head1 SYNOPSIS
 
-B<c> [B<-l> I<LIBRARY>] [B<-m> I<MATCHER>] [B<-t> I<THRESHOLD>] [B<-c>] [B<-i>] [I<directory>]
+B<c> [B<-chiv>] [B<-l> I<LIBRARY>] [B<-m> I<MATCHER>] [B<-t> I<THRESHOLD>] [I<directory>]
 
 =head1 DESCRIPTION
 
@@ -15,6 +15,18 @@ For instance, if you have I<foo/bar> and I<fo/foo> directories and run 'B<c> I<f
 =head1 OPTIONS
 
 =over 4
+
+=item B<-c>
+
+Do bash completion.
+
+=item B<-h>
+
+Print usage information.
+
+=item B<-i>
+
+Do insensitive case completion.
 
 =item B<-l> I<LIBRARY>
 
@@ -28,13 +40,9 @@ Set the aproximate string matching function. See B<-l>.
 
 Set the threshold ([0,1]).
 
-=item B<-c>
+=item B<-v>
 
-Do bash completion.
-
-=item B<-i>
-
-Do insensitive case completion.
+Print version information.
 
 =back
 
