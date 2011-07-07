@@ -20,11 +20,13 @@ clean:
 	rm -f liblevenshtein.so* $(OBJ)
 
 install: all
+	install -m 644 -D levenshtein.h $(DESTDIR)$(PREFIX)/include/levenshtein.h
 	install -D liblevenshtein.so.$(MAJOR_VERSION).$(MINOR_VERSION) $(DESTDIR)$(PREFIX)/lib/liblevenshtein.so.$(MAJOR_VERSION).$(MINOR_VERSION)
-	ldconfig -v -n $(DESTDIR)$(PREFIX)/lib
 	ln -sf liblevenshtein.so.$(MAJOR_VERSION).$(MINOR_VERSION) $(DESTDIR)$(PREFIX)/lib/liblevenshtein.so
+	ldconfig
 
 uninstall:
+	rm -f $(DESTDIR)$(PREFIX)/include/levenshtein.h
 	rm -f $(DESTDIR)$(PREFIX)/lib/liblevenshtein.so
 	rm -f $(DESTDIR)$(PREFIX)/lib/liblevenshtein.so.$(MAJOR_VERSION)
 	rm -f $(DESTDIR)$(PREFIX)/lib/liblevenshtein.so.$(MAJOR_VERSION).$(MINOR_VERSION)
