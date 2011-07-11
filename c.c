@@ -84,7 +84,10 @@ void aprox_path_match_rec(const char *path, struct darray_string *tokens,
     DIR *dp;
     struct dirent *dir;
 
-    dp = opendir(path[0] == '\0' ? "." : path);
+    dp = opendir(*path ? path : ".");
+    if (dp == NULL)
+        return;
+
     while ((dir = readdir(dp))) {
         if (dir->d_type != DT_DIR)
             continue;
@@ -138,8 +141,11 @@ int print_dir_complete(const char *path, const char *prefix, int full) {
     DIR *dp;
     struct dirent *dir;
 
+    dp = opendir(*path ? path : ".");
+    if (dp == NULL)
+        return 0;
+
     i = 0;
-    dp = opendir(path[0] == '\0' ? "." : path);
     while ((dir = readdir(dp))) {
         if (dir->d_type != DT_DIR || (prefix[0] != '.'
                                       && (strcmp(dir->d_name, ".") == 0
