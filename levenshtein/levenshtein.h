@@ -15,6 +15,5 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 int levenshtein_distance(const char *s, const char *t);
 double normalized_levenshtein_distance(const char *s, const char *t);

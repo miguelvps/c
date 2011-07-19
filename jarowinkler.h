@@ -15,5 +15,4 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 double jaro_winkler_distance(const char *s, const char *a);

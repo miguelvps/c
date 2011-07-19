@@ -56,9 +56,9 @@ void *s_realloc(void *ptr, size_t size) {
 
 int str_starts_with(const char *str, const char *prefix, int icase) {
     if (icase)
-        for ( ; *prefix && tolower(*str) == tolower(*prefix); str++, prefix++) ;
+        for (; *prefix && tolower(*str) == tolower(*prefix); str++, prefix++);
     else
-        for ( ; *prefix && *str == *prefix; str++, prefix++) ;
+        for (; *prefix && *str == *prefix; str++, prefix++);
 
     return !*prefix;
 }

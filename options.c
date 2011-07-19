@@ -30,14 +30,16 @@ char *program_name;
 struct options options;
 
 void print_usage() {
-    fprintf(stderr, "Usage: %s [-chiv] [-l library] [-m matcher] [-t threshold] [directory]\n", program_name);
+    fprintf(stderr,
+            "Usage: %s [-chiv] [-l library] [-m matcher] [-t threshold] [directory]\n",
+            program_name);
 }
 
 void print_version() {
     fprintf(stderr, "c %s - a 'cd' wrapper\n", VERSION);
 }
 
-void parse_options(int argc, char * const argv[]) {
+void parse_options(int argc, char *const argv[]) {
     int i;
 
     program_name = argv[0];

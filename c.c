@@ -27,27 +27,32 @@
 #include "options.h"
 #include "util.h"
 
-#define darray(name, type) struct name { type *items; int size; int alloc; }
+#define darray(name, type) \
+    struct name { type *items; int size; int alloc; }
 
-#define darray_init(a, n) do { \
-                              (a)->items = s_malloc(n * sizeof(*(a)->items)); \
-                              (a)->size = 0; \
-                              (a)->alloc = n; \
-                          } while (0)
+#define darray_init(a, n) \
+    do { \
+        (a)->items = s_malloc(n * sizeof(*(a)->items)); \
+        (a)->size = 0; \
+        (a)->alloc = n; \
+    } while (0)
 
-#define darray_free(a) free((a)->items)
+#define darray_free(a) \
+    free((a)->items)
 
-#define darray_destroy(a, d, i) do { \
-                                    for (i=0; i<(a)->size; i++) \
-                                        d((a)->items[i]); \
-                                    darray_free(a); \
-                                } while (0)
+#define darray_destroy(a, d, i) \
+    do { \
+        for (i=0; i<(a)->size; i++) \
+        d((a)->items[i]); \
+        darray_free(a); \
+    } while (0)
 
-#define darray_append(a, i) do { \
-                                if ((a)->size >= (a)->alloc) \
-                                    (a)->items = s_realloc((a)->items, ((a)->alloc*=2) * sizeof(*(a)->items)); \
-                                (a)->items[(a)->size++] = i; \
-                            } while (0)
+#define darray_append(a, i) \
+    do { \
+        if ((a)->size >= (a)->alloc) \
+        (a)->items = s_realloc((a)->items, ((a)->alloc*=2) * sizeof(*(a)->items)); \
+        (a)->items[(a)->size++] = i; \
+    } while (0)
 
 darray(darray_entry, struct entry *);
 darray(darray_string, char *);
@@ -59,6 +64,7 @@ struct entry {
 
 struct entry *entry_new(char *dir, double score) {
     struct entry *entry = s_malloc(sizeof(*entry));
+
     entry->dir = dir;
     entry->score = score;
     return entry;
@@ -72,6 +78,7 @@ void entry_free(struct entry *entry) {
 int entry_compare(const void *a, const void *b) {
     struct entry **e1 = (struct entry **)a;
     struct entry **e2 = (struct entry **)b;
+
     return (int)(100.0 * (*e2)->score - 100.0 * (*e1)->score);
 }
 
@@ -115,7 +122,6 @@ struct darray_entry *aprox_path_match(const char *path) {
     struct darray_string tokens;
     struct darray_entry *entries;
 
-
     p = s_malloc((strlen(path) + 1) * sizeof(*p));
     p = strcpy(p, path);
 
@@ -147,15 +153,16 @@ int print_dir_complete(const char *path, const char *prefix, int full) {
 
     i = 0;
     while ((dir = readdir(dp))) {
-        if (dir->d_type != DT_DIR || (prefix[0] != '.'
-                                      && (strcmp(dir->d_name, ".") == 0
-                                          || strcmp(dir->d_name, "..") == 0)))
+        if (dir->d_type != DT_DIR
+            || (prefix[0] != '.'
+                && (strcmp(dir->d_name, ".") == 0
+                    || strcmp(dir->d_name, "..") == 0)))
             continue;
         if (str_starts_with(dir->d_name, prefix, options.icase)) {
             if (full)
                 printf("%s%s%s\n", path,
-                                   path[max(0, strlen(path) - 1)] == '/' ? "" : "/",
-                                   dir->d_name);
+                       path[max(0, strlen(path) - 1)] == '/' ? "" : "/",
+                       dir->d_name);
             else
                 printf("%s\n", dir->d_name);
             i++;
@@ -199,7 +206,8 @@ void complete(const char *path) {
 
     /* Aprox completion */
     entries = aprox_path_match(path);
-    qsort(entries->items, entries->size, sizeof(*entries->items), entry_compare);
+    qsort(entries->items, entries->size, sizeof(*entries->items),
+          entry_compare);
     if (path[path_len - 1] == '/')
         for (i = 0; i < entries->size; i++)
             print_dir_complete(entries->items[i]->dir, "", 1);
@@ -210,7 +218,7 @@ void complete(const char *path) {
     free(entries);
 }
 
-int main(int argc, char * const argv[]) {
+int main(int argc, char *const argv[]) {
     int i;
     char *path;
     struct darray_entry *array;
@@ -245,7 +253,8 @@ int main(int argc, char * const argv[]) {
         printf("%s", path);
         fprintf(stderr, "%.0f%% %s\n", array->items[0]->score * 100, path);
         free(path);
-    } else
+    }
+    else
         printf("%s", options.directory);
 
     darray_destroy(array, entry_free, i);
