@@ -27,8 +27,8 @@
 #include "options.h"
 #include "util.h"
 
-#define darray(name, type) \
-    struct name { type *items; int size; int alloc; }
+#define darray(type) \
+    { type *items; int size; int alloc; }
 
 #define darray_init(a, n) \
     do { \
@@ -54,8 +54,8 @@
         (a)->items[(a)->size++] = i; \
     } while (0)
 
-darray(darray_entry, struct entry *);
-darray(darray_string, char *);
+struct darray_entry darray(struct entry *);
+struct darray_string darray(char *);
 
 struct entry {
     char *dir;
