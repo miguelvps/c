@@ -80,7 +80,7 @@ int match_compare(const void *a, const void *b) {
     struct match **m1 = (struct match **)a;
     struct match **m2 = (struct match **)b;
 
-    return (int)(100.0 * (*m2)->score - 100.0 * (*m1)->score);
+    return ((*m1)->score > (*m2)->score) - ((*m1)->score < (*m2)->score);
 }
 
 /* from path find match directories for tokens and return it in matches */
@@ -265,7 +265,7 @@ int main(int argc, char *const argv[]) {
     if (matches->size) {
         qsort(matches->items, matches->size, sizeof(*matches->items),
               match_compare);
-        path = realpath(matches->items[0]->dir, NULL);
+        path = realpath(matches->items[matches->size - 1]->dir, NULL);
         printf("%s", path);
         fprintf(stderr, "%.0f%% %s\n", matches->items[0]->score * 100, path);
         free(path);
