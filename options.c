@@ -31,7 +31,7 @@ struct options options;
 
 void print_usage() {
     fprintf(stderr,
-            "Usage: %s [-chiv] [-l library] [-m matcher] [-t threshold] [directory]\n",
+            "Usage: %s [-chisv] [-l library] [-m matcher] [-t threshold] [directory]\n",
             program_name);
 }
 
@@ -49,7 +49,7 @@ void parse_options(int argc, char *const argv[]) {
     options.threshold = THRESHOLD;
     options.directory = "";
 
-    while ((i=getopt(argc, argv, "chil:m:t:v")) != -1) {
+    while ((i=getopt(argc, argv, "chisvl:m:t:")) != -1) {
         switch (i) {
             case 'c':
                 options.complete = 1;
@@ -65,6 +65,9 @@ void parse_options(int argc, char *const argv[]) {
                 break;
             case 'm':
                 options.matcher_name = optarg;
+                break;
+            case 's':
+                options.simulate = 1;
                 break;
             case 't':
                 options.threshold = atof(optarg);

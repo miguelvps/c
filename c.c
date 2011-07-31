@@ -227,6 +227,20 @@ int main(int argc, char *const argv[]) {
 
     parse_options(argc, argv);
 
+    if (options.simulate) {
+        matches = aprox_path_match(options.directory);
+        qsort(matches->items, matches->size, sizeof(*matches->items),
+              match_compare);
+        for (i = matches->size - 1; i >= 0; i--) {
+            path = realpath(matches->items[i]->dir, NULL);
+            fprintf(stderr, "%.0f%% %s\n", matches->items[i]->score * 100, path);
+            free(path);
+        }
+        darray_destroy(matches, match_free, i);
+        free(matches);
+        return 0;
+    }
+
     if (options.complete) {
         complete(options.directory);
         return 0;

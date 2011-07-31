@@ -28,6 +28,7 @@ struct options {
     matcher_t matcher;
     double threshold;
     char *directory;
+    int simulate;
 };
 
 extern char *program_name;

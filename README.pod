@@ -4,7 +4,7 @@ c - a 'cd' wrapper
 
 =head1 SYNOPSIS
 
-B<c> [B<-chiv>] [B<-l> I<LIBRARY>] [B<-m> I<MATCHER>] [B<-t> I<THRESHOLD>] [I<directory>]
+B<c> [B<-chisv>] [B<-l> I<LIBRARY>] [B<-m> I<MATCHER>] [B<-t> I<THRESHOLD>] [I<directory>]
 
 =head1 DESCRIPTION
 
@@ -35,6 +35,10 @@ Select the shared library where I<MATCHER> is found.
 =item B<-m> I<MATCHER>
 
 Set the aproximate string matching function. See B<-l>.
+
+=item B<-s>
+
+Simulate. Print all matching directories.
 
 =item B<-t> I<THRESHOLD>
 
