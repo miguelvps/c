@@ -24,7 +24,7 @@
 
 #include "options.h"
 
-void error(int status, int errnum, const char *format, ...) {
+void error(int statu, int errnum, const char *format, ...) {
     va_list args;
 
     fprintf(stderr, "%s: error: ", program_name);
@@ -35,7 +35,7 @@ void error(int status, int errnum, const char *format, ...) {
         fprintf(stderr, ": %s", strerror(errnum));
     fprintf(stderr, "\n");
 
-    exit(status);
+    exit(statu);
 }
 
 void *s_malloc(size_t size) {
