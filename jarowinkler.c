@@ -19,12 +19,12 @@
 
 #define SCALING_FACTOR 0.1
 
-static int max(int x, int y) {
-    return x > y ? x : y;
+static int max(int z, int y) {
+    return z > y ? z : y;
 }
 
-static int min(int x, int y) {
-    return x < y ? x : y;
+static int min(int z, int y) {
+    return z < y ? z : y;
 }
 
 double jaro_winkler_distance(const char *s, const char *a) {
