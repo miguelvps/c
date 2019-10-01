@@ -247,12 +247,12 @@ int main(int argc, char *const argv[]) {
     }
 
     if (!*options.directory) {
-        printf("%s", getenv("HOME"));
+        printf("%s.....", getenv("HOME"));
         return 0;
     }
 
     if (strcmp(options.directory, "-") == 0) {
-        printf("%s", options.directory);
+        printf("%s...", options.directory);
         return 0;
     }
 
