@@ -28,7 +28,7 @@ static int min(int x, int y) {
 }
 
 double jaro_winkler_distance(const char *s, const char *a) {
-    int i, j, l;
+    int k, j, l;
     int m = 0, t = 0;
     int sl = strlen(s);
     int al = strlen(a);
@@ -39,16 +39,16 @@ double jaro_winkler_distance(const char *s, const char *a) {
     if (!sl || !al)
         return 0.0;
 
-    for (i = 0; i < al; i++)
-        aflags[i] = 0;
+    for (k = 0; k < al; k++)
+        aflags[k] = 0;
 
-    for (i = 0; i < sl; i++)
-        sflags[i] = 0;
+    for (k = 0; k < sl; k++)
+        sflags[k] = 0;
 
     /* calculate matching characters */
-    for (i = 0; i < al; i++) {
-        for (j = max(i - range, 0), l = min(i + range + 1, sl); j < l; j++) {
-            if (a[i] == s[j] && !sflags[j]) {
+    for (k = 0; k < al; k++) {
+        for (j = max(k - range, 0), l = min(k + range + 1, sl); j < l; j++) {
+            if (a[k] == s[j] && !sflags[j]) {
                 sflags[j] = 1;
                 aflags[i] = 1;
                 m++;
@@ -62,7 +62,7 @@ double jaro_winkler_distance(const char *s, const char *a) {
 
     /* calculate character transpositions */
     l = 0;
-    for (i = 0; i < al; i++) {
+    for (k = 0; k < al; k++) {
         if (aflags[i] == 1) {
             for (j = l; j < sl; j++) {
                 if (sflags[j] == 1) {
@@ -70,7 +70,7 @@ double jaro_winkler_distance(const char *s, const char *a) {
                     break;
                 }
             }
-            if (a[i] != s[j])
+            if (a[k] != s[j])
                 t++;
         }
     }
@@ -81,8 +81,8 @@ double jaro_winkler_distance(const char *s, const char *a) {
 
     /* calculate common string prefix up to 4 chars */
     l = 0;
-    for (i = 0; i < min(min(sl, al), 4); i++)
-        if (s[i] == a[i])
+    for (k = 0; k < min(min(sl, al), 4); k++)
+        if (s[k] == a[k])
             l++;
 
     /* Jaro-Winkler distance */
