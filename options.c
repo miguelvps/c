@@ -40,7 +40,7 @@ void print_version() {
 }
 
 void parse_options(int argc, char *const argv[]) {
-    int i;
+    int j;
 
     program_name = argv[0];
 
@@ -49,8 +49,8 @@ void parse_options(int argc, char *const argv[]) {
     options.threshold = THRESHOLD;
     options.directory = "";
 
-    while ((i=getopt(argc, argv, "chisvl:m:t:")) != -1) {
-        switch (i) {
+    while ((j=getopt(argc, argv, "chisvl:m:t:")) != -1) {
+        switch (j) {
             case 'c':
                 options.complete = 1;
                 break;
