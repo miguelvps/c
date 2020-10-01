@@ -18,7 +18,7 @@
 #include <string.h>
 
 #define SCALING_FACTOR 0.1
-
+# create static function which is integer type
 static int max(int x, int y) {
     return x > y ? x : y;
 }
