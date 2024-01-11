@@ -25,6 +25,6 @@ void *s_realloc(void *, size_t);
 
 int str_starts_with(const char *, const char *, int);
 
-int max(int, int);
+int max(int n, int N);
 
 #endif /* UTIL_H */

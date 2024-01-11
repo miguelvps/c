@@ -63,6 +63,6 @@ int str_starts_with(const char *str, const char *prefix, int icase) {
     return !*prefix;
 }
 
-int max(int x, int y) {
-    return x > y ? x : y;
+int max(int n, int N) {
+    return n > N ? n : N;
 }
